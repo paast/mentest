@@ -1,0 +1,102 @@
+
+const axios = require('axios');
+
+const getIndex = (req, res, next) => {
+  res.render('base', { title: 'base' });
+};
+
+const getTest = (req, res, next) => {
+  res.render('add-test');
+};
+
+const getTests = async (req, res, next) => {
+  const response = await axios.get('http://localhost:3000/api/test');
+  const data = response.data ? response.data : null;
+
+  res.render('test-list', { title: 'mentest', tests: data });
+
+  // // messy sh*t
+  // let html = "";
+  // if (data && Array.isArray(data)) {
+  //   data.forEach(item => {
+  //     html += `<a href="/test/${item._id}">${item.name}/${item.owner} : ${item.elapsedTime}</a><br>`;
+  //   });
+  // } else {
+  //   html += data;
+  // }
+  // res.send(pageify(html));
+};
+
+const getTestById = async (req, res, next) => {
+  const id = req.params.id ? req.params.id : null;
+
+  const response = await axios.get(`http://localhost:3000/api/test/${id}`);
+  const test = response.data.test ? response.data.test : null;
+
+
+  // messy sh*t
+  let html = "";
+  if (test) {
+    html += "<table><tr><th>field</th><th>value</th></tr>";
+    Object.entries(test).forEach(pair => {
+      html += `<tr><td>${pair[0]}</td><td>${pair[1]}</td></tr>`
+    });
+    html += "</table>";
+  } else {
+    html = JSON.stringify(response);
+  }
+  res.send(html);
+}
+
+const postTest = async (req, res, next) => {
+  const name = req.body.name ? req.body.name : null;
+  const owner = req.body.owner ? req.body.owner : null;
+  const now = Date.now();
+  const then = now + randRange(0, 100000);
+  const tads = makeTads(randRange(3, 10));
+
+  const requestObject = {
+    test: {
+      name: name,
+      owner: owner,
+      startTime: now,
+      endTime: then,
+      tads: tads
+    }
+  };
+
+  const response = await axios.post('http://localhost:3000/api/test', requestObject);
+  const id = response.data.id ? response.data.id : null;
+  console.log(response);
+  if (id) {
+    res.redirect(`/test/${id}`);
+  } else {
+    res.redirect('/test')
+  }
+};
+
+///////////////////
+
+function makeTads(n) {
+  const tads = [];
+
+  for (i = 0; i < n; i++) {
+    tads.push(randRange(0, 100));
+  }
+
+  return tads;
+}
+
+function randRange(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
+///////////////////
+
+module.exports = {
+  getIndex,
+  getTest,
+  getTests,
+  getTestById,
+  postTest
+};

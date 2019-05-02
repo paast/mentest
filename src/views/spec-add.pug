@@ -1,0 +1,10 @@
+extends base.pug
+
+block content
+  h2 ADD SPEC
+  form(class='test-form')
+    label(for='runId') Parent runId
+    input(type='text' name='runId')
+    label(for='name') name
+    input(type='text' name='name')
+    input(type='submit' value='generate and add')

@@ -1,0 +1,11 @@
+extends base.pug
+
+block content
+  h2 RUN DETAIL
+  table
+    tr
+      td KEY
+      td VALUE
+    tr: each entry Object.entries(run)
+      td entry.key
+      td entry.value

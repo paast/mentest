@@ -1,0 +1,14 @@
+extends base.pug
+
+block content
+  h2 ADD RUN
+  form(class='test-form' method='post')
+    label(for='name') name
+    input(type='text' name='name')
+    label(for='runId') runId
+    input(type='text' name='runId')
+    label(for='isParallel') isParallel
+    input(type='checkbox' name='isParallel')
+    label(for='threadCount') threadCount
+    input(type='text' name='threadCount')
+    input(type='submit')
