@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const suiteSchema = require('./suite');
+const threadSchema = require('./thread');
 const Schema = mongoose.Schema;
 
 const runSchema = new Schema({
@@ -18,10 +19,11 @@ const runSchema = new Schema({
     required: true,
     default: false
   },
-  threadCount: {
+  numThreads: {
     type: Number,
     default: 1
   },
+  threads: [threadSchema],
   totalPass: {
     type: Number,
     default: 0
@@ -35,21 +37,48 @@ const runSchema = new Schema({
   specs: [suiteSchema]
 });
 
-runSchema.virtuals = {
-
-}
+runSchema.virtual('elapsedTime').get(function() {
+  return (this.endTime - this.startTime)
+});
 
 runSchema.methods = {
-  return Test.findById(id)
-  .catch(err => {
-    console.error(err);
-    return err.message;
-  });
+  addSpec: function(spec) {
+    try {
+      this.specs.push(spec)
+      this.save();
+      return { run: this }
+    } catch (e) {
+      return { error: e }
+    }
+  },
+  genThread: function() {
+    if (this.threads.length >= this.numThreads) {
+      return { e : 'thread count reached, no more being accepted'}
+    } 
+    try {
+      thread = {
+        _id: mongoose.Types.ObjectId(),
+        state: 'created'
+      }
+      this.threads.push(thread);
+      this.save();
+      return { threadId: thread._id }
+    } catch (e) {
+      return { e: e }
+    }
+  }
 };
 
 runSchema.statics = {
-  getById: id => {
-
+  getById: function (id) {
+    return this.findById(id)
+      .then(run => {
+        return { run: run }
+      })
+      .catch(e => {
+        console.log('ERROR: ' + e)
+        return { error: e }
+    })
   }
 };
 

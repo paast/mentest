@@ -6,12 +6,12 @@ const testSchema = new Schema({
     type: String,
     required: true,
     enum: ['pass', 'fail', 'pend']
+  },
+  screenshot: {
+    type: Schema.Types.ObjectId,
+    ref: 'Media'
   }
 });
-
-testSchema.virtuals = {
-
-}
 
 testSchema.methods = {
 

@@ -2,3 +2,7 @@ extends base.pug
 
 block content
   h2 LIST RUNS
+  ul
+    if runs
+      each run in runs
+        li: a(href="/run/" + run.id) #{run.id}

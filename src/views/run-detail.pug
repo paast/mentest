@@ -2,10 +2,16 @@ extends base.pug
 
 block content
   h2 RUN DETAIL
-  table
-    tr
-      td KEY
-      td VALUE
-    tr: each entry Object.entries(run)
-      td entry.key
-      td entry.value
+  if run  
+    table
+      tr
+        td KEY
+        td VALUE
+      each item in Object.entries(run)
+        tr
+          td #{item[0]}
+          td #{item[1]}
+    form(class='test-form' action=('/run/' + run.id + '/thread') method='post')
+      input(type='submit' value='GEN THREAD')
+  else
+    p error, no run
