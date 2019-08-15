@@ -4,7 +4,8 @@ html
     style
       include styles.css
   body
-    include nav.pug
-    block content
-      #{content}
+    include components/nav.pug
+    div
+      block content
+        #{content}
     

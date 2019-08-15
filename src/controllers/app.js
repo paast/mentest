@@ -13,8 +13,8 @@ const getRunForm = (req, res, next) => {
 
 const getRuns = async (req, res, next) => {
 
-  const response = await axios.get('http://localhost:3000/api/run');
-  const { runs } = response.data;
+  const response = await axios.get(`http://localhost:${req.connection.localPort}/api/run`);
+  const { runs, error } = response.data;
 
   res.render('run-list', { title: 'list run', runs: runs });
 };
@@ -25,9 +25,7 @@ const getRunById = async (req, res, next) => {
   if (!runId) { res.status(500).end() }
 
   const response = await axios.get(`http://localhost:3000/api/run/${runId}`);
-  const run = response.data.run ? response.data.run : null;
-
-  if (!run) { res.status(404).end() }
+  const { run } = response.data;
 
   res.render('run-detail', { title: 'run detail', run: run });
 };
@@ -36,25 +34,17 @@ const getSpecForm = (req, res, next) => {
   res.render('spec-add', { title: 'add spec' });
 };
 
-const getGenThread = async (req, res, next) => {
-  res.render('gen-thread', { title: 'gen thread' });
-};
-
-const getEndThread = async (req, res, next) => {
-  res.render('end-thread', { title: 'end thread' });
-};
-
 ///// POST
 
 const postRunForm = async (req, res, next) => {
-  const { name, runId, isParallel, threadCount } = req.body;
+  const { name, runId, isParallel, numThreads } = req.body;
 
   const requestObject = {
     requestObject: {
-      name: name,
+      describe: name,
       runId: runId,
       isParallel: isParallel,
-      threadCount: threadCount
+      numThreads: parseInt(numThreads)
     }
   };
 
@@ -63,39 +53,44 @@ const postRunForm = async (req, res, next) => {
   try {
     responseObject = await axios.post('http://localhost:3000/api/run', requestObject);
   } catch (e) {
-    res.render('error/500', { error: e })
+    res.render('error/500', { error: e.response.data.error });
+    console.log(e.response.data)
     return
   }
 
-  const run = responseObject.data.run ? responseObject.data.run : null;
-  const err = responseObject.data.error ? responseObject.data.error : null;
+  const { run, error } = responseObject.data;
 
-  if (err) {
-    res.render('error/500', { error: err.message });
+  if (error) {
+    res.render('error/500', { error: 'test' });
   } else {
     res.redirect(`/run/${run.id}`);
   }
 };
 
 const postSpecForm = async (req, res, next) => {
-  const runId = req.body.runId ? req.body.runId : null;
+  const { runId, threadId } = req.params;
 
   const requestObject = {
     requestObject: generateSuite(4)
   };
+  requestObject.requestObject.threadId = threadId;
   const response = await axios.post(`http://localhost:3000/api/run/${runId}/spec`, requestObject);
   
-  res.send(response.data);
+  res.redirect(`/run/${runId}`);
 };
 
 const postGenThread = async (req, res, next) => {
 
   const { runId } = req.params;
 
-  const response = await axios.post(`http://localhost:3000/api/run/${runId}/thread`);
-  const { threadId } = response.data;
+  try {
+    const response = await axios.post(`http://localhost:3000/api/run/${runId}/thread`);
+    const { threadId } = response.data;
+  } catch (e) {
+    console.log(`${e.response.status}: ${e.response.data}`);
+  }
 
-  res.send(response.data);
+  res.redirect(`/run/${runId}`);
 };
 
 const postEndThread = async (req, res, next) => {
@@ -103,7 +98,7 @@ const postEndThread = async (req, res, next) => {
   const { runId, threadId } = req.params;
 
   const response = await axios.post(`http://localhost:3000/api/run/${runId}/thread/${threadId}`);
-  const { success } = response.data;
+  const { success, error } = response.data;
 
   res.redirect(`/run/${runId}`);
 };
@@ -132,19 +127,19 @@ function generateTests(n) {
   for (i = 0; i < n; i++) {
     status = randomChoice(stati);
     let screenshot = null;
-    // if (status === 'fail') {
-    //   let data;
-    //   try {
-    //     data = fse.readFileSync('fail.png');
-    //   } catch (e) {
-    //     console.log(e);
-    //   }
-    //   screenshot = {
-    //     name: generateName(),
-    //     contentType: 'image/jpeg',
-    //     data: data
-    //   }
-    // }
+    if (status === 'fail') {
+      let data;
+      try {
+        data = fse.readFileSync('fail.png').toJSON().data;
+      } catch (e) {
+        console.log(e);
+      }
+      screenshot = {
+        name: generateName(),
+        contentType: 'image/jpeg',
+        data: data
+      }
+    }
     tests.push({ status: randomChoice(stati), screenshot: screenshot });
 
   }
@@ -165,16 +160,20 @@ function randRange(min, max) {
 
 /////
 
+function getImageTest(req, res, next) {
+  res.render('image-test', { title: 'image test' });
+}
+
 module.exports = {
   getIndex,
   getRunForm,
   getRuns,
   getRunById,
   getSpecForm,
-  getGenThread,
-  getEndThread,
   postRunForm,
   postSpecForm,
   postGenThread,
-  postEndThread
+  postEndThread,
+
+  getImageTest
 }

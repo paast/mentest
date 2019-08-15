@@ -3,15 +3,32 @@ extends base.pug
 block content
   h2 RUN DETAIL
   if run  
-    table
-      tr
-        td KEY
-        td VALUE
-      each item in Object.entries(run)
-        tr
-          td #{item[0]}
-          td #{item[1]}
     form(class='test-form' action=('/run/' + run.id + '/thread') method='post')
       input(type='submit' value='GEN THREAD')
+    table
+      tr
+        th KEY
+        th VALUE
+      each item in Object.entries(run)
+        if (item[0] === "threads")
+          tr
+            td #{item[0]}
+            td
+              each thread in item[1]
+                div(style=(thread.isComplete ? "background: #9286ef" : "background: #46c47a"))
+                  p #{thread._id}
+                  if (!thread.isComplete)
+                    form(class='test-form' action=(`/run/${run.id}/thread/${thread._id}`) method='post' style='margin:0')
+                      input(type='submit' value='END THREAD')
+                    form(class='test-form' action=('/run/' + run.id + '/thread/' + thread._id + '/spec') method='post' style='margin:0')
+                      input(type='submit' value='ADD SPEC')
+        else
+          if (item[0] !== "specs")
+            tr
+              td #{item[0]}
+              td #{item[1]}
+    include components/suite
+    each spec in run.specs
+      +suite(spec)
   else
     p error, no run

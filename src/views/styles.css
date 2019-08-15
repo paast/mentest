@@ -1,9 +1,52 @@
 
+body {
+  background: #2b273a;
+  color: #f3d860;
+  font-family: consolas;
+  border: 0px;
+  padding: 0px;
+  margin: 0px;
+}
+
+p {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+.test-form input {
+  display: block;
+  margin-top: 0;
+}
+
+.suite {
+  padding-left: 20px;
+  background-color: #aaaaFF40;
+}
+
+.expand {
+  background: #aaaaFF40;
+}
+
+.expand-info {
+  display: none;
+}
+
 .nav-item {
   padding-left: 10px;
   padding-right: 10px;
 }
 
-.test-form input {
-  display: block;
+
+a:link,
+a:active,
+a:visited,
+a:hover
+ {
+  color: #f3d860;
+  text-decoration: none;
+  
+}
+
+a:hover {
+  background: #403a57;
+
 }

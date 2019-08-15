@@ -4,10 +4,10 @@ const Schema = mongoose.Schema;
 /////
 
 const threadSchema = new Schema({
-  state: {
+  isComplete: {
     required: true,
-    type: String,
-    enum: ['created', 'done', 'error']
+    type: Boolean,
+    default: false
   }
 });
 

@@ -7,10 +7,7 @@ const testSchema = new Schema({
     required: true,
     enum: ['pass', 'fail', 'pend']
   },
-  screenshot: {
-    type: Schema.Types.ObjectId,
-    ref: 'Media'
-  }
+  screenshotUrl: String
 });
 
 testSchema.methods = {

@@ -13,6 +13,7 @@ config = {
 ///////////////////
 
 const server = express();
+server.locals.baseUrl = '';
 
 server.set('views', './src/views');
 server.set('view engine', 'pug');
@@ -26,7 +27,7 @@ connect();
 
 function listen() {
   server.listen(config.serverPort, () => {
-    console.log(`Grove is listening on port ${config.serverPort}`);
+    console.log(`mentest is listening on port ${config.serverPort}`);
   });
 }
 

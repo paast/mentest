@@ -5,16 +5,12 @@ const Schema = mongoose.Schema;
 
 const runSchema = new Schema({
   name: String,
+  test: [String],
   runId: {
     type: String,
     required: true
   },
-  status: {
-    type: String,
-    required: true,
-    enum: ['created', 'started', 'finished', 'error']
-  },
-  isParallel: {
+  isComplete: {
     type: Boolean,
     required: true,
     default: false
@@ -23,7 +19,10 @@ const runSchema = new Schema({
     type: Number,
     default: 1
   },
-  threads: [threadSchema],
+  threads: [{
+    type: threadSchema,
+    select: false
+  }],
   totalPass: {
     type: Number,
     default: 0
@@ -37,49 +36,77 @@ const runSchema = new Schema({
   specs: [suiteSchema]
 });
 
+runSchema.virtual('describe').set(function(describe) {
+  const split = describe.split('<');
+  this.name = split[0].trim();
+  if (split[1]) {
+    this.test = split[1].replace(/>| /g, '').split(',');
+  }
+});
+
 runSchema.virtual('elapsedTime').get(function() {
   return (this.endTime - this.startTime)
 });
 
 runSchema.methods = {
-  addSpec: function(spec) {
-    try {
-      this.specs.push(spec)
-      this.save();
-      return { run: this }
-    } catch (e) {
-      return { error: e }
-    }
+
+  addSpec: async function(spec) {
+    const threadId = spec.threadId;
+    if (!threadId) throw 'could not add spec: no thread assigned';
+    const thread = this.threads.id(threadId);
+    if (!thread) throw `could not add spec: thread ${threadId} not found on run ${this._id}`;
+    if (thread.isComplete) throw `could not add spec: thread ${threadId}  is locked`;
+
+    this.specs.push(spec)
+    await this.save();
+    return { success: true }
   },
-  genThread: function() {
-    if (this.threads.length >= this.numThreads) {
-      return { e : 'thread count reached, no more being accepted'}
+
+  genThread: async function(callback) {
+    if (this.threads.length >= this.numThreads || this.finished) {
+      throw 'thread count reached, no more being accepted'
     } 
-    try {
-      thread = {
-        _id: mongoose.Types.ObjectId(),
-        state: 'created'
-      }
-      this.threads.push(thread);
-      this.save();
-      return { threadId: thread._id }
-    } catch (e) {
-      return { e: e }
+
+    const thread = {
+      _id: mongoose.Types.ObjectId(),
+      state: 'created'
+    }
+
+    this.threads.push(thread);
+    await this.save();
+
+    const newThread = this.threads.id(thread._id);
+    if (!newThread) throw 'thread failed to save';
+
+    return { thread: newThread };
+  },
+
+  endThread: async function(threadId) {
+    const thread = this.threads.id(threadId);
+    if (!thread) throw 'no thread';
+    thread.set({ isComplete: true });
+
+    await this.save();
+    await this.checkEnd();
+    return { success: true }
+  },
+
+  checkEnd: async function() {
+    const isFull = this.threads.length >= this.numThreads;
+    let areDone = true;
+    this.threads.forEach(thread => {
+      if (!thread.isComplete) areDone = false;
+    });
+
+    if (isFull && areDone) {
+      this.set({ isComplete: true, endTime: Date.now() });
+      await this.save();
     }
   }
 };
 
 runSchema.statics = {
-  getById: function (id) {
-    return this.findById(id)
-      .then(run => {
-        return { run: run }
-      })
-      .catch(e => {
-        console.log('ERROR: ' + e)
-        return { error: e }
-    })
-  }
+
 };
 
 runSchema.set('toObject', { virtuals: true });

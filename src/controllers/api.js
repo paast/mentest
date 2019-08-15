@@ -7,67 +7,45 @@ const getIndex = (req, res, next) => {
   res.send('api');
 };
 
+const getDocs = (req, res, next) => {
+  res.send('docs');
+};
+
 const getAllRuns = async (req, res, next) => {
-  const models = await Run.find({});
-  if (!!models && models.length > 0) {
-    res.send({ runs: models });
-  } else {
+  
+  const runs = await Run.find({});
+
+  if (!runs || runs.length == 0) {
     res.send({ runs: null });
+  } else {
+    res.send({ runs: runs});
   }
 };
 
 const getRunById = async (req, res, next) => {
+
   const { runId } = req.params;
 
-  if (!runId) {
-    res.send('improper request');
-    return;
-  }
-
-  const run = await Run.getById(runId);
-
-  if (run.error || !run) {
-    res.send(run.error ? run.error : 'no run');
-  } else {
-    res.send(run);
-  }
+  const run = await Run.findById(runId);
+  res.send({ run: run });
 };
 
-const addRun = (req, res, next) => {
+const addRun = async (req, res, next) => {
 
   const { requestObject } = req.body;
+  requestObject.startTime = Date.now();
 
-  requestObject['status'] = 'started';
-  requestObject['startTime'] = Date.now();
-
-  Run.create(requestObject, (err, run) => {
-    if (err) { res.send({ error: err }) }
-    else { res.send({ run: run }) }
-  });
+  const run = await Run.create(requestObject);
+  res.send({ run: run });
 };
 
 const startThread = async (req, res, next) => {
 
   const { runId } = req.params;
 
-  const response = await Run.getById(runId);
-  if (!response) console.log('failed run get: ' + runId);
-  const { run, error } = response;
-
-  if (error) {
-    res.send(error);
-    return;
-  }
-
-  if (!run) {
-    res.send('error, no run');
-    return;
-  }
-
-  const { threadId, e } = run.genThread();
-  
-  console.log(threadId, e);
-  res.send(threadId);
+  const run = await Run.findById(runId);
+  const { thread } = await run.genThread();
+  res.send({ threadId: thread._id });
 
 };
 
@@ -75,57 +53,78 @@ const endThread = async (req, res, next) => {
 
   const { runId, threadId } = req.params;
 
+  const run = await Run.findById(runId);
+  const { success } = await run.endThread(threadId);
+  res.send({ success: success });
 };
 
 const addSpecToRun = async (req, res, next) => {
 
-  const { requestObject } = req.body;
   const { runId } = req.params;
+  const { requestObject } = req.body;
+  
+  console.log(requestObject);
 
-  if (!runId || !requestObject) {
-    res.status(500).end();
-  }
+  const run = await Run.findById(runId);
 
-  const response = await Run.getById(runId);
-  if (!response) {
-    res.status(500).end();
-  } else if (response.error) {
-    res.status(400).send({ error: response.error });
-  }
+  const success = await run.addSpec(requestObject);
+  res.send({ success: success });
+};
 
-  const run = response.run;
+const addScreenshotToRun = (req, res, next) => {
 
-  if (!run) {
-    res.status(400).send('invalid run id');
-  }
+  // pull screenshot from request
+  // pull runId from request
+  // if no screenshot, return 400 (no screenshot provided)
 
-  const success = run.addSpec(requestObject);
+  // try await addScreenshot(runId, screenshot)
+  // if error, return 500 (error)
 
-  res.send('yo ' + success);
-}
+  // (else) return 200
+
+};
+
+const addScreenshotsToRun = (req, res, next) => {
+
+  // pull screenshots from request
+  // pull runId from request
+  // if no screenshots, return 400 (no screenshots provided)
+
+  // try screenshots.forEach(await addScreenshot(runId, screenshot))
+  // if error, return 500 (error)
+
+  // (else) return 200
+
+};
 
 ///////////////////
 
-const errorTest = (req, res, next) => {
-  const type = req.params.type ? req.params.type : null;
+async function addScreenshot(runId, screenshot) {
 
-  console.log(type);
+  // get run by runId
+  // if !run, return error (invalid runId)
 
-  switch (type) {
-    case '500': res.status(500).send('test 500'); return;
-    case '400': res.status(400).send('no record found with id 50'); return;
-    default: res.status(200).send('test 500'); return;
-  }
+  // use screenshot.path[] to query test object within run
+  // if !test, return error (invalid test path for run ${run.runId})
+
+  // using runId & testId, create URL, write file to URL & set test.screenshotUrl = `/ss/${runId}/${testId}.png`
+  // if error, return error (failed to set test.screenshotUrl for ${runId}/${testId})
+
+  // return success
+  
 }
 
 ///////////////////
 
 module.exports = {
   getIndex,
+  getDocs,
   getAllRuns,
   getRunById,
   addRun,
   startThread,
   endThread,
-  addSpecToRun
+  addSpecToRun,
+  addScreenshotToRun,
+  addScreenshotsToRun
 }

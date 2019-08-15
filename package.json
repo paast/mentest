@@ -2,12 +2,17 @@
   "name": "grove",
   "version": "1.0.0",
   "dependencies": {
-    "axios": "^0.18.0",
+    "axios": ">=0.18.1",
     "body-parser": "^1.18.3",
-    "express": "^4.16.4",
+    "express": "^4.17.1",
     "fse": "^4.0.1",
+    "jsreport-chrome-pdf": "^1.4.0",
+    "jsreport-core": "^2.5.0",
+    "jsreport-pug": "^3.1.0",
     "mongoose": "^5.5.1",
-    "pug": "^2.0.3"
+    "pug": "^2.0.3",
+    "puppeteer": "^1.17.0",
+    "lodash": ">=4.17.13"
   },
   "devDependencies": {
     "nodemon": "^1.18.11"
