@@ -2,7 +2,7 @@
   "name": "grove",
   "version": "1.0.0",
   "dependencies": {
-    "axios": ">=0.18.1",
+    "axios": ">=0.21.1",
     "body-parser": "^1.18.3",
     "express": "^4.17.1",
     "fse": "^4.0.1",
