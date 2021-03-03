@@ -10,7 +10,7 @@
     "jsreport-core": "^2.5.0",
     "jsreport-pug": "^3.1.0",
     "mongoose": "^5.7.5",
-    "pug": "^2.0.3",
+    "pug": "^3.0.1",
     "puppeteer": "^1.17.0",
     "lodash": ">=4.17.13"
   },
