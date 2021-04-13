@@ -6,7 +6,7 @@
     "body-parser": "^1.18.3",
     "express": "^4.17.1",
     "fse": "^4.0.1",
-    "jsreport-chrome-pdf": "^1.4.0",
+    "jsreport-chrome-pdf": "^1.10.0",
     "jsreport-core": "^2.5.0",
     "jsreport-pug": "^3.1.0",
     "mongoose": "^5.7.5",
